@@ -164,7 +164,7 @@ Keep the body code-led. Lead with the "what you'd write" snippet, not prose. Eac
 ## repositories
 
 - [lexigram](https://github.com/dbtinoy-/lexigram) — the framework itself
-- [lexigram-docs](https://github.com/lexigram-framework/lexigram-docs) — the docs site
+- [lexigram-docs](https://github.com/dbtinoy-/lexigram-framework-docs) — the docs site
 - [lexigram-skills](https://github.com/dbtinoy-/lexigram-framework-skills) — this repo
 
 ---

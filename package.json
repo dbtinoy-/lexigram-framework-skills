@@ -1,0 +1,7 @@
+{
+  "name": "lexigram-skills",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Opencode skills for the Lexigram framework — providers, modules, CLI, database, testing, AI, and more",
+  "main": ".opencode/plugins/lexigram-skills.js"
+}

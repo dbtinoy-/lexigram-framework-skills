@@ -62,6 +62,21 @@ lexigram gen admin_action BulkPublish        # Custom admin action
 
 ```
 
+## Generated Output Example
+
+Running `lexigram gen model Product` produces:
+
+```python
+# models/product.py
+from lexigram.domain import DomainModel
+
+class Product(DomainModel):
+    id: str
+    name: str
+    price: float
+    created_at: datetime
+```
+
 ## Typical Workflow
 
 ```bash

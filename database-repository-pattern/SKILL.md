@@ -60,11 +60,35 @@ class UserRepo(GenericRepository[User]):
 ## Migrations
 
 ```bash
-lexigram db init                        # Create migrations directory
+lexigram db init                        # Create migrations/ directory
 lexigram db migrate "add user table"    # Auto-generate migration
 lexigram db upgrade                      # Apply pending migrations
 lexigram db downgrade                    # Revert
 lexigram db status / history             # Migration state
+```
+
+### Migration File Structure
+
+```python
+# migrations/0003_add_user_table.py
+from lexigram.sql import Migration
+
+class AddUserTable(Migration):
+    version = "0003"
+    description = "Add user table"
+
+    async def upgrade(self, conn):
+        await conn.execute("""
+            CREATE TABLE users (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                created_at TIMESTAMPTZ DEFAULT now()
+            )
+        """)
+
+    async def downgrade(self, conn):
+        await conn.execute("DROP TABLE IF EXISTS users")
 ```
 
 ## Config

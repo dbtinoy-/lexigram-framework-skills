@@ -123,7 +123,7 @@ new:  ## Scaffold a new skill: make new SKILL=my-skill-name
 .PHONY: from-docs
 from-docs:  ## Show doc-to-skill mapping from lexigram-docs
 	@echo "=== Documentation sources for skills ==="
-	@for skill in ai-subsystem-quickstart caching-patterns cli-code-generation cli-config-and-inspect cli-database-operations cli-project-scaffolding configuration-management creating-providers-and-modules database-repository-pattern events-and-messaging resilience-patterns testing-with-lexigram using-result-and-error-codes web-controllers-and-routing; do \
+	@for skill in ai-subsystem-quickstart auth-and-security caching-patterns cli-code-generation cli-config-and-inspect cli-database-operations cli-project-scaffolding configuration-management creating-providers-and-modules database-repository-pattern events-and-messaging lexigram-ui real-time-web resilience-patterns testing-with-lexigram using-result-and-error-codes web-controllers-and-routing; do \
 	  echo ""; \
 	  echo "--- $$skill ---"; \
 	  case "$$skill" in \

@@ -88,9 +88,33 @@ class AppModule(Module):
 | `@patch(path)` | PATCH | `@patch("/users/{id}")` |
 | `@use_guards(*guards)` | any | `@use_guards(AuthGuard)` |
 
+## Content Security Policy
+
+```python
+from lexigram.web import CSPMiddleware
+
+class AppModule(Module):
+    @classmethod
+    def configure(cls) -> DynamicModule:
+        return WebModule.configure(
+            controllers=[UserController],
+            middleware=[
+                CSPMiddleware({
+                    "default-src": "'self'",
+                    "script-src": "'self' https://unpkg.com",
+                    "style-src": "'self' https://cdn.tailwindcss.com",
+                    "img-src": "'self' data:",
+                    "connect-src": "'self' ws://localhost:8000",
+                }),
+            ],
+        )
+```
+
 ## Common Mistakes
 
 - Blocking I/O in async handlers — use `await` on all calls
 - Returning exceptions directly — return `(body, status_code)` tuple
 - Forgetting to register controllers in `WebModule.configure()`
 - Business logic in controllers — delegate to services
+- Missing CSP on HTMX/SSE endpoints — inline event handlers blocked by default
+- Overly permissive `script-src: 'unsafe-inline'` — defeats CSP purpose

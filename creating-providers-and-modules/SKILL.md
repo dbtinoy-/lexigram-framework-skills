@@ -7,7 +7,7 @@ description: Use when creating new extension packages, adding providers, or defi
 
 ## Overview
 
-Providers wire services into the DI container. Modules group providers and enforce boundary visibility. Together they form the composition root.
+Providers wire services into the DI container. Modules group providers and enforce visibility.
 
 ## Core Pattern
 
@@ -51,18 +51,17 @@ class MyProvider(Provider):
 
 ### Provider Priorities
 
-| Priority | Value | When |
-|----------|-------|------|
-| `CRITICAL` | 0 | Logging, error handling |
-| `INFRASTRUCTURE` | 10 | Database, cache, queues |
-| `SECURITY` | 20 | Auth middleware, encryption |
+| Priority | Value | Use |
+|----------|-------|-----|
+| `CRITICAL` | 0 | Logging, errors |
+| `INFRASTRUCTURE` | 10 | DB, cache, queues |
+| `SECURITY` | 20 | Auth, encryption |
 | `NORMAL` | 30 | Default |
 | `DOMAIN` | 50 | Business services |
 | `PRESENTATION` | 80 | Controllers, templates |
-| `COMMS` | 90 | WebSocket, SSE |
 | `LOW` | 100 | Admin UI, analytics |
 
-Shutdown runs in reverse priority order.
+Shutdown runs in reverse order.
 
 ## Module Patterns
 
@@ -100,7 +99,7 @@ class MyModule(Module):
         )
 ```
 
-Three factory conventions: `configure()` (production), `scope()` (sub-scope), `stub()` (testing).
+Three factory conventions: `configure()`, `scope()`, `stub()`.
 
 ## Package File Layout
 
@@ -118,6 +117,32 @@ lexigram-mypackage/
 └── pyproject.toml
 ```
 
+## Shared Queue Lifecycle
+
+Coordinate subscribe/unsubscribe when multiple providers share a queue:
+
+```python
+class WorkerProvider(Provider):
+    async def boot(self, container):
+        queue = await container.resolve(QueueProtocol)
+        self.sub = await queue.subscribe("orders.new", self.handle)
+        self.sub2 = await queue.subscribe("orders.cancel", self.handle_cancel)
+
+    async def shutdown(self):
+        await self.sub.unsubscribe()
+        await self.sub2.unsubscribe()
+
+class MonitorProvider(Provider):
+    async def boot(self, container):
+        queue = await container.resolve(QueueProtocol)
+        self.sub = await queue.subscribe("orders.new", self.handle_metrics)
+
+    async def shutdown(self):
+        await self.sub.unsubscribe()
+```
+
+Each provider owns its subscription handles. Never share a `Subscription` across providers — always unsubscribe in `shutdown()`.
+
 ## Common Mistakes
 
 - Calling `register()` after container freeze — raises `ContainerFrozenError`
@@ -125,3 +150,5 @@ lexigram-mypackage/
 - Business logic on Provider — belongs in services, not providers
 - Forgetting `exports` in DynamicModule — consumers can't resolve the type
 - Not defining `stub()` — forces test modules to use real implementations
+- Not unsubscribing in `shutdown()` — subscription handles leak, consumers pile up
+- Sharing a `Subscription` across providers — race on unsubscribe tears down other consumers

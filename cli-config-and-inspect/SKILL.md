@@ -13,7 +13,7 @@ description: Use when viewing or validating configuration, inspecting runtime st
 
 ```bash
 lexigram config show                        # Resolved config (secrets masked)
-lexigram config show --reveal-secrets       # Unmasked
+lexigram config show --show-secrets          # Unmasked
 lexigram config validate                    # Schema + cross-field validation
 lexigram config doctor --env production     # Environment-specific diagnostics
 lexigram config env                         # Show ${VAR} references and status
@@ -68,6 +68,6 @@ lexigram contrib check                      # Verify all load without errors
 ## Common Mistakes
 
 - Inspecting routes before starting the app — `lexigram inspect` needs a running or configured app
-- Using `config show --reveal-secrets` in CI logs — secrets leak
+- Using `config show --show-secrets` in CI logs — secrets leak
 - Running `config validate` with missing env vars — config may be valid but incomplete
 - Not using `--json` for programmatic consumption — human-friendly output is fragile to parse

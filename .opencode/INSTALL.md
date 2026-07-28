@@ -19,6 +19,7 @@ Or install globally in `~/.config/opencode/opencode.json`.
 | Skill | Use when... |
 |-------|-------------|
 | `ai-subsystem-quickstart` | Setting up LLM, RAG, agents, memory, MCP |
+| `auth-and-security` | Authentication, authorization, guards, JWT |
 | `caching-patterns` | Adding caching, configuring backends, preventing stampedes |
 | `cli-code-generation` | Scaffolding code with the 42 generators |
 | `cli-config-and-inspect` | Viewing config, inspecting runtime, diagnosing systems |
@@ -28,7 +29,9 @@ Or install globally in `~/.config/opencode/opencode.json`.
 | `creating-providers-and-modules` | Creating providers, modules, DI wiring |
 | `database-repository-pattern` | Database access, repositories, domain models |
 | `events-and-messaging` | CQRS, event bus, queues, outbox |
+| `lexigram-ui` | Components, templates, CDN deps, static files |
+| `real-time-web` | SSE, HTMX, WebSocket, EventChannel |
 | `resilience-patterns` | Retry, circuit breaker, bulkhead, rate limiting |
 | `testing-with-lexigram` | TestEnvironment, stubs, fakes |
 | `using-result-and-error-codes` | Result[T,E], error codes, exception hierarchy |
-| `web-controllers-and-routing` | HTTP endpoints, controllers, middleware, guards |
+| `web-controllers-and-routing` | HTTP endpoints, controllers, middleware, guards, CSP |

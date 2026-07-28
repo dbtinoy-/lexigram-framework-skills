@@ -113,13 +113,26 @@ git clone --branch v0.1.0 --depth 1 https://github.com/dbtinoy-/lexigram-framewo
 | `database-repository-pattern` | Async SQL, repositories, domain models, migrations |
 | `caching-patterns` | Multi-backend caching, stampede protection |
 
+### Security
+
+| Skill | Use when… |
+|-------|-----------|
+| `auth-and-security` | Authentication, authorization, guards, JWT, password hashing |
+
 ### Web
 
 | Skill | Use when… |
 |-------|-----------|
-| `web-controllers-and-routing` | HTTP controllers, middleware, guards |
+| `web-controllers-and-routing` | HTTP controllers, middleware, guards, CSP |
+| `real-time-web` | SSE with HTMX, WebSocket, EventChannel |
 | `events-and-messaging` | CQRS, event bus, queues, outbox |
 | `resilience-patterns` | Retry, circuit breaker, bulkhead, rate limiting |
+
+### UI
+
+| Skill | Use when… |
+|-------|-----------|
+| `lexigram-ui` | Components, templates, CDN deps, static files |
 
 ### Testing
 
@@ -132,21 +145,6 @@ git clone --branch v0.1.0 --depth 1 https://github.com/dbtinoy-/lexigram-framewo
 Each skill is a single `SKILL.md` file with YAML frontmatter (`name`, `description`) and a body of code-led examples. When you ask your AI agent to do something matching a skill's description, the agent loads that file and follows it. No magic, no plugins to write — just markdown your editor reads.
 
 A skill is roughly: one task, twelve to a hundred lines of example code, a quick-reference table, and a short list of common mistakes. Easy to read, easy to extend.
-
-## early on purpose
-
-These skills track Lexigram 0.1.x. The framework is still soft; the skills move with it. If a skill steers you wrong, [open an issue](https://github.com/dbtinoy-/lexigram-framework-skills/issues) — that's how the next release gets better.
-
-## known gaps
-
-A few skills we know we owe — pull requests welcome:
-
-- **SSE / real-time web patterns.** No skill yet covers HTMX + SSE + `EventChannel` end-to-end.
-- **Shared-queue lifecycle.** `creating-providers-and-modules` doesn't yet walk through subscribe/unsubscribe patterns where multiple owners share a queue (a real foot-gun in production).
-- **`lexigram-ui` skill.** Component behavior and CDN dependencies aren't documented as a skill yet.
-- **CSP guidance in `web-controllers-and-routing`.** Content-security-policy configuration is missing.
-
-If you've solved one of these and want to share the pattern, see [contributing](#contributing).
 
 ## contributing
 

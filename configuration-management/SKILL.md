@@ -74,8 +74,6 @@ db:
 ## Config in Providers
 
 ```python
-from lexigram.config import ConfigSection, section_field
-
 class MyProvider(Provider):
     config_key = "my_service"
     config_model = MyServiceConfig

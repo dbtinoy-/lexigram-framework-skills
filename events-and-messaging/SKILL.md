@@ -12,13 +12,13 @@ Lexigram provides three messaging primitives: commands (one handler), events (ma
 ## Commands (CQRS)
 
 ```python
-from lexigram.events import Command, CommandHandler
+from lexigram.events import Command, CommandHandlerProtocol
 
 class CreateOrder(Command):
     user_id: str
     items: list[Item]
 
-class CreateOrderHandler(CommandHandler[CreateOrder]):
+class CreateOrderHandler(CommandHandlerProtocol[CreateOrder, Result[Order, DomainError]]):
     def __init__(self, repo: OrderRepositoryProtocol):
         self.repo = repo
 
@@ -37,12 +37,8 @@ class OrderCreated(DomainEvent):
     user_id: str
 
 @event_handler(OrderCreated)
-class SendConfirmationHandler:
-    def __init__(self, mailer: MailerProtocol):
-        self.mailer = mailer
-
-    async def handle(self, event: OrderCreated) -> None:
-        await self.mailer.send(event.user_id, "Order confirmed")
+async def send_confirmation(event: OrderCreated, mailer: MailerProtocol) -> None:
+    await mailer.send(event.user_id, "Order confirmed")
 ```
 
 ## Buses
@@ -54,7 +50,7 @@ bus = await container.resolve(CommandBus)
 result = await bus.dispatch(CreateOrder(user_id="u1", items=[...]))
 
 bus = await container.resolve(EventBus)
-await bus.publish(OrderCreated(order_id="o1", user_id="u1"))
+result = await bus.publish(OrderCreated(order_id="o1", user_id="u1"))
 ```
 
 ## Message Queues
@@ -77,20 +73,19 @@ class OrderConsumer(MessageConsumer):
 ```python
 from lexigram.queue import TransactionalOutbox
 
-outbox = TransactionalOutbox(db_provider, queue)
-async with db_provider.scoped_context():
-    await db.save(order)
-    await outbox.flush(OrderCreated(order_id=order.id))
+outbox = TransactionalOutbox(queue)
+outbox.stage("orders.created", BusMessage(payload={"order_id": order.id}))
+await outbox.flush()
 ```
 
 ## Quick Reference
 
 | Pattern | Class | Bus |
 |---------|-------|-----|
-| Command (1 handler) | `Command`, `CommandHandler[T]` | `CommandBus.dispatch()` |
+| Command (1 handler) | `Command`, `CommandHandlerProtocol[T, TResult]` | `CommandBus.dispatch()` |
 | Event (N handlers) | `DomainEvent`, `@event_handler` | `EventBus.publish()` |
 | Queue pub/sub | `QueueProtocol`, `MessageConsumer` | `queue.publish()/subscribe()` |
-| Outbox | `TransactionalOutbox` | `outbox.flush()` |
+| Outbox | `TransactionalOutbox` | `outbox.stage()` / `outbox.flush()` |
 
 ## Common Mistakes
 

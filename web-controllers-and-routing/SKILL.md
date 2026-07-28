@@ -13,7 +13,7 @@ Lexigram-web provides an async-first web layer on Starlette. Controllers group r
 
 ```python
 from lexigram.web import Controller, get, post, put, delete
-from lexigram.http import Request
+from lexigram.web import Request
 
 class UserController(Controller):
     def __init__(self, repo: UserRepositoryProtocol):
@@ -50,11 +50,13 @@ class UserController(Controller):
 ## Guards and Middleware
 
 ```python
-from lexigram.web import use_guards, AuthGuard
+from lexigram.web.security import use_guards, AuthGuard
+from lexigram.contracts.web.guard import GuardProtocol
 
-class AdminGuard(AuthGuard):
-    async def can_activate(self, request) -> bool:
-        return request.user.has_role("admin")
+class AdminGuard(GuardProtocol):
+    async def can_activate(self, context) -> bool:
+        user = getattr(context.state, "user", None)
+        return user is not None and "admin" in user.roles
 
 @use_guards(AuthGuard, AdminGuard)
 @get("/admin/dashboard")
@@ -65,14 +67,14 @@ async def dashboard(self, request: Request):
 ## Module Registration
 
 ```python
-from lexigram.web import WebModule, ControllerModule
+from lexigram.web import WebModule
 
 class AppModule(Module):
     @classmethod
     def configure(cls) -> DynamicModule:
         return WebModule.configure(
-            controllers=[UserController, HealthController],
-            middleware=[RateLimitMiddleware, CORSMiddleware],
+            controllers=[UserController],
+            host="0.0.0.0",
             port=8000,
         )
 ```
@@ -90,22 +92,32 @@ class AppModule(Module):
 
 ## Content Security Policy
 
+CSP is configured via `CSPPolicy` dataclass and applied through `SecurityHeadersMiddleware`, not a standalone middleware class.
+
 ```python
-from lexigram.web import CSPMiddleware
+from lexigram.web.security import CSPPolicy
+from lexigram.web.security.headers import SecurityHeadersMiddleware
 
 class AppModule(Module):
     @classmethod
     def configure(cls) -> DynamicModule:
-        return WebModule.configure(
-            controllers=[UserController],
-            middleware=[
-                CSPMiddleware({
-                    "default-src": "'self'",
-                    "script-src": "'self' https://unpkg.com",
-                    "style-src": "'self' https://cdn.tailwindcss.com",
-                    "img-src": "'self' data:",
-                    "connect-src": "'self' ws://localhost:8000",
-                }),
+        return DynamicModule(
+            module=cls,
+            providers=[
+                WebProvider(
+                    controllers=[UserController],
+                    middleware=[SecurityHeadersMiddleware(
+                        csp=CSPPolicy(
+                            default_src=["'self'"],
+                            script_src=["'self'", "https://unpkg.com"],
+                            style_src=["'self'", "https://cdn.tailwindcss.com"],
+                            img_src=["'self'", "data:"],
+                            connect_src=["'self'", "ws://localhost:8000"],
+                        ),
+                    )],
+                    host="0.0.0.0",
+                    port=8000,
+                ),
             ],
         )
 ```
@@ -116,5 +128,5 @@ class AppModule(Module):
 - Returning exceptions directly — return `(body, status_code)` tuple
 - Forgetting to register controllers in `WebModule.configure()`
 - Business logic in controllers — delegate to services
-- Missing CSP on HTMX/SSE endpoints — inline event handlers blocked by default
+- Missing `CSPPolicy` on HTMX/SSE endpoints — inline event handlers blocked by default
 - Overly permissive `script-src: 'unsafe-inline'` — defeats CSP purpose

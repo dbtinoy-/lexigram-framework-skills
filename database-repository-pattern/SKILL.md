@@ -53,8 +53,8 @@ Models are frozen dataclasses by default. Not SQLAlchemy mapped objects — mapp
 from lexigram.sql import GenericRepository
 
 class UserRepo(GenericRepository[User]):
-    table = "users"
-    model_cls = User
+    def __init__(self, provider: DatabaseProviderProtocol):
+        super().__init__(provider, table_name="users", entity_class=User)
 ```
 
 ## Migrations
@@ -74,11 +74,11 @@ lexigram db status / history             # Migration state
 from lexigram.sql import Migration
 
 class AddUserTable(Migration):
-    version = "0003"
-    description = "Add user table"
+    def __init__(self):
+        super().__init__(version="0003", description="Add user table")
 
-    async def upgrade(self, conn):
-        await conn.execute("""
+    async def up(self, provider: DatabaseProviderProtocol):
+        await provider.execute("""
             CREATE TABLE users (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 name TEXT NOT NULL,
@@ -87,8 +87,8 @@ class AddUserTable(Migration):
             )
         """)
 
-    async def downgrade(self, conn):
-        await conn.execute("DROP TABLE IF EXISTS users")
+    async def down(self, provider: DatabaseProviderProtocol):
+        await provider.execute("DROP TABLE IF EXISTS users")
 ```
 
 ## Config

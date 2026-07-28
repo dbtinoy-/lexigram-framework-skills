@@ -12,16 +12,17 @@ Lexigram's DI container makes testing straightforward: fake at the contract boun
 ## TestEnvironment
 
 ```python
-from lexigram.testing import TestEnvironment, FakeCache
+from lexigram.testing import TestEnvironment
+from lexigram.testing.fakes import FakeCache
 from lexigram.contracts.cache import CacheBackendProtocol
 
 async def test_user_service():
-    env = TestEnvironment("user-service")
-    env.override(CacheBackendProtocol, FakeCache())
-    async with env:
-        service = await env.container.resolve(UserService)
-        result = await service.get_user("user-123")
-        assert result.is_ok()
+    env = TestEnvironment(extra_registrations={CacheBackendProtocol: FakeCache()})
+    await env.setup()
+    service = await env.container.resolve(UserService)
+    result = await service.get_user("user-123")
+    assert result.is_ok()
+    await env.teardown()
 ```
 
 Each `TestEnvironment` is fully isolated — no global state pollution.
@@ -64,10 +65,11 @@ async def test_find_user_returns_err():
 ## Ambient Capability Override
 
 ```python
+from datetime import datetime
 from lexigram.testing.clock import FixedClock
 from lexigram.primitives import clock
 
-with clock.use(FixedClock("2026-01-01")):
+with clock.use(FixedClock(datetime(2026, 1, 1))):
     assert clock.now().year == 2026
 ```
 
@@ -121,5 +123,5 @@ Defined in root `pyproject.toml`: `integration`, `slow`, `unit`, `e2e`, `require
 - Forgetting `@pytest.mark.asyncio` on async tests
 - Mocking implementation details instead of protocol interfaces
 - Shared global state between tests — use fresh `TestEnvironment` per test
-- Not calling `env.override()` before entering context
+- Not passing overrides via `extra_registrations` to `TestEnvironment`
 - Testing without `stub()` modules — forces full boot with real infrastructure

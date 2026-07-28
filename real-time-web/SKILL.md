@@ -1,33 +1,31 @@
 ---
 name: real-time-web
-description: Use when implementing real-time features with SSE, WebSocket, HTMX integration, or EventChannel in Lexigram
+description: Use when implementing real-time features with SSE, WebSocket, or HTMX integration in Lexigram
 ---
 
 # Real-Time Web
 
 ## Overview
 
-Lexigram supports three real-time primitives: SSE (one-way server→client), WebSocket (bidirectional), and EventChannel (pub/sub shared across processes). HTMX can consume SSE streams for declarative live updates.
+Lexigram supports two real-time primitives: SSE (one-way server→client) and WebSocket (bidirectional). HTMX can consume SSE streams for declarative live updates.
 
 ## SSE with HTMX
 
 ```python
-from lexigram.web import Controller, get
-from lexigram.realtime import EventChannel
+from lexigram.web import Controller, get, post
+from lexigram.web.sse.handler import AbstractSSEHandler
 
 class LiveController(Controller):
-    def __init__(self, channel: EventChannel):
-        self.channel = channel
+    def __init__(self, sse: AbstractSSEHandler):
+        self.sse = sse
 
     @get("/events/stream")
     async def stream(self, request: Request):
-        async with self.channel.subscribe("updates") as sub:
-            async for event in sub:
-                yield f"data: {event.data}\n\n"
+        return await self.sse.stream()
 
     @post("/events/trigger")
     async def trigger(self, request: Request):
-        await self.channel.publish("updates", {"status": "refreshed"})
+        await self.sse.push({"status": "refreshed"})
         return {"ok": True}
 ```
 
@@ -44,35 +42,18 @@ HTMX client:
 ## WebSocket Handler
 
 ```python
-from lexigram.web import websocket
+from lexigram.web.websocket.decorators import websocket_handler
 
 class ChatHandler:
-    def __init__(self, channel: EventChannel):
-        self.channel = channel
-
-    @websocket("/chat/{room}")
+    @websocket_handler("/chat/{room}")
     async def chat(self, ws: WebSocket, room: str):
         await ws.accept()
-        async with self.channel.subscribe(f"chat:{room}") as sub:
-            async for msg in sub:
-                await ws.send_text(msg.data)
-```
-
-## Module Registration
-
-```python
-from lexigram.realtime import RealtimeModule
-
-AppModule.configure(
-    controllers=[LiveController, ChatHandler],
-    modules=[RealtimeModule.configure(channel_backend="redis")],
-)
+        async for message in ws.iter_text():
+            await ws.send_text(f"echo: {message}")
 ```
 
 ## Common Mistakes
 
 - Blocking the SSE generator with sync I/O — keep it async throughout
 - Using SSE for bidirectional communication — use WebSocket instead
-- Missing `async with` on channel subscribe — leaks subscription handles
 - Forgetting HTMX `hx-sse` swap target — events arrive but DOM never updates
-- No backpressure on EventChannel — slow consumers can build unbounded buffers

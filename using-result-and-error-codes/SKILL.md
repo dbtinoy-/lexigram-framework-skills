@@ -82,7 +82,7 @@ async def execute() -> Result[SkillResult, Any]: ...
 
 Every exception has a `_code` attribute: `LEX_ERR_<DOMAIN>_<NNN>`.
 
-**576 registered codes across 40 packages** — see `REF_ERROR_CODES.md`.
+Hundreds of registered codes across 40+ packages — see `REF_ERROR_CODES.md`.
 
 ### Hierarchy
 

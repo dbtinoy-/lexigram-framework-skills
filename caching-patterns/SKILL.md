@@ -87,9 +87,8 @@ cache:
 ## Testing
 
 ```python
-from lexigram.testing import FakeCache
-env.override(CacheBackendProtocol, FakeCache())
-# or use the module stub:
+from lexigram.testing.fakes import FakeCache
+# Use the module stub (preferred):
 CacheModule.stub()
 ```
 

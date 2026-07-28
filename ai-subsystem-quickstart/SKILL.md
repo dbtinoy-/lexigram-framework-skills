@@ -57,20 +57,21 @@ result = await agent.execute("Find docs about caching")
 Hosted (OpenAI, Anthropic, …):
 
 ```yaml
-ai_llm:
-  provider: openai
-  model: gpt-4-turbo
-  api_key: ${OPENAI_API_KEY}
-  temperature: 0.7
-  max_tokens: 2048
-  thinking:                       # For reasoning models
-    budget_tokens: 4096
+ai:
+  llm:
+    provider: openai
+    model: gpt-4-turbo
+    api_key: ${OPENAI_API_KEY}
+    temperature: 0.7
+    max_tokens: 2048
+    thinking:                       # For reasoning models
+      budget_tokens: 4096
 ```
 
 Local — any OpenAI-compatible server (Ollama, LM Studio, vLLM, llama.cpp):
 
 ```yaml
-ai_llm:
+ai:
   provider: openai_compatible
   model: llama3.2
   api_base: http://localhost:11434/v1   # Ollama default; swap for LM Studio / vLLM
@@ -83,11 +84,9 @@ ai_llm:
 
 ```python
 from lexigram.ai import AIModule
-from lexigram.ai.llm import LLMModule
 
 async with Application.boot(modules=[
     AIModule.configure(ai_config),
-    LLMModule.configure(llm_config),
 ]) as app:
     llm = await app.container.resolve(LLMClientProtocol)
 ```
@@ -95,7 +94,7 @@ async with Application.boot(modules=[
 ## Testing
 
 ```python
-@module(imports=[LLMModule.stub()])  # No-op LLM
+@module(imports=[AIModule.stub()])  # No-op AI
 class TestModule(Module): pass
 ```
 
@@ -120,4 +119,4 @@ class TestModule(Module): pass
 - Forgetting `ThinkingConfig` for reasoning models — default suppresses thinking tokens
 - Not calling `result.map()` on LLM responses — forget Result unwrapping discipline
 - Missing LLM `fallback` providers — single-provider setup has no resilience
-- Using `LLMModule.stub()` when testing — otherwise tests call real APIs
+- Using `AIModule.stub()` when testing — otherwise tests call real APIs

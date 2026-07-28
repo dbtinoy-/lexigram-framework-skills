@@ -12,20 +12,17 @@ Lexigram-ui provides component-based server-side rendering with JinjaX component
 ## Component Pattern
 
 ```python
-from lexigram.ui import Component, component
+from lexigram.ui import component
+from lexigram.ui.protocols import RenderableProtocol
 
 @component("dashboard/stats")
-class StatsComponent(Component):
-    template = "components/stats.html.jinja"
-
-    async def context(self, request: Request) -> dict:
-        return {
-            "users": await self.repo.count(),
-            "revenue": await self.repo.revenue_today(),
-        }
+async def stats_component(request: Request) -> dict:
+    repo = await request.state.container.resolve(UserRepositoryProtocol)
+    return {
+        "users": await repo.count(),
+        "revenue": await repo.revenue_today(),
+    }
 ```
-
-Component template (`components/stats.html.jinja`):
 
 ```html
 <div class="grid grid-cols-2 gap-4">
@@ -57,10 +54,10 @@ Dependencies are injected into every rendered page via `<head>` automatically.
 ## Static Files
 
 ```python
-from lexigram.ui import StaticFiles
+from lexigram.web.middleware.static import StaticFilesMiddleware
 
 AppModule.configure(
-    middleware=[StaticFiles(static_dir="./static", url_prefix="/static")],
+    middleware=[StaticFilesMiddleware(static_dir="./static", url_prefix="/static")],
 )
 ```
 
@@ -79,6 +76,6 @@ async with Application.boot(modules=[
 
 - Serving templates outside the configured `templates_dir` — raises `TemplateNotFound`
 - Embedding CDN URLs in templates — use `cdn:` config for centralized management
-- Forgetting `StaticFiles` middleware — static assets return 404
+- Forgetting `StaticFilesMiddleware` — static assets return 404
 - Putting business logic in component `context()` — delegate to services
 - Missing HTMX script tag — dynamic features silently fail

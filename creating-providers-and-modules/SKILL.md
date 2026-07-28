@@ -20,7 +20,7 @@ Module    → groups providers, defines imports/exports
 
 ```python
 from lexigram.di import Provider
-from lexigram.contracts.di import ContainerRegistrarProtocol, ContainerResolverProtocol
+from lexigram.contracts.core.di import ContainerRegistrarProtocol, BootContainerProtocol
 from lexigram.contracts.core.health import HealthCheckResult, HealthStatus
 
 class MyProvider(Provider):
@@ -31,7 +31,7 @@ class MyProvider(Provider):
         container.singleton(MyProtocol, MyImpl)
         container.transient(OtherProtocol, lambda: OtherImpl(...))
 
-    async def boot(self, container: ContainerResolverProtocol) -> None:
+    async def boot(self, container: BootContainerProtocol) -> None:
         svc = await container.resolve(MyProtocol)
         await svc.connect()
 
@@ -45,7 +45,7 @@ class MyProvider(Provider):
 ### Rules
 
 - `register()` gets `ContainerRegistrarProtocol` — no resolution
-- `boot()` gets `ContainerResolverProtocol` — no registration
+- `boot()` gets `BootContainerProtocol` — no registration
 - No business logic on Provider classes
 - All I/O in boot/shutdown is async
 

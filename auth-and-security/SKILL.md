@@ -7,34 +7,38 @@ description: Use when adding authentication, authorization, guards, or security 
 
 ## Overview
 
-Lexigram-auth provides JWT-based authentication, role-based access control (RBAC), and integration with the web layer's guard system. Auth flows are provider-configured and injectable via `AuthProtocol`.
+Lexigram-auth provides JWT-based authentication, role-based access control (RBAC), and integration with the web layer's guard system. Auth flows are provider-configured and injectable via `AuthenticatorProtocol`.
 
 ## Core Pattern
 
 ```python
-from lexigram.auth import AuthProtocol, UserSession, JWTConfig
+from lexigram.contracts.auth import AuthenticatorProtocol
 
 class AuthService:
-    def __init__(self, auth: AuthProtocol):
+    def __init__(self, auth: AuthenticatorProtocol):
         self.auth = auth
 
     async def login(self, email: str, password: str) -> Result[str, AuthError]:
-        session = await self.auth.authenticate(email, password)
-        return session.map_sync(lambda s: s.token)
+        from lexigram.auth.authn import AuthenticationService
+        svc = AuthenticationService(self.auth)
+        result = await svc.authenticate(email, password)
+        return result.map_sync(lambda t: t.access_token)
 
-    async def require_admin(self, token: str) -> Result[UserSession, AuthError]:
-        return await self.auth.verify(token, roles=["admin"])
+    async def require_admin(self, token: str) -> Result[bool, AuthError]:
+        result = await self.auth.verify_token(token)
+        return result.map_sync(lambda vt: "admin" in vt.claims.get("roles", []))
 ```
 
 ## Guards
 
 ```python
-from lexigram.web import AuthGuard
+from lexigram.web.security import AuthGuard, use_guards
+from lexigram.contracts.web.guard import GuardProtocol
 
-class AdminGuard(AuthGuard):
-    async def can_activate(self, request) -> bool:
-        session = await request.auth.get_session()
-        return session is not None and "admin" in session.roles
+class AdminGuard(GuardProtocol):
+    async def can_activate(self, context) -> bool:
+        user = getattr(context.state, "user", None)
+        return user is not None and "admin" in user.roles
 
 @use_guards(AuthGuard, AdminGuard)
 @get("/admin/users")
@@ -46,22 +50,23 @@ async def admin_list(self, request: Request):
 
 ```yaml
 auth:
-  jwt_secret: ${JWT_SECRET}
-  jwt_algorithm: HS256
-  access_token_ttl: 3600
-  refresh_token_ttl: 604800
-  password_hashing: bcrypt
+  secret_key: ${JWT_SECRET}
+  token:
+    algorithm: HS256
+    access_token_expire: 60m
+    refresh_token_expire: 7d
 ```
 
 ## Module Registration
 
 ```python
 from lexigram.auth import AuthModule
+from lexigram.contracts.auth import AuthenticatorProtocol
 
 async with Application.boot(modules=[
-    AuthModule.configure(auth_config),
+    AuthModule.configure(config=auth_config),
 ]) as app:
-    auth = await app.container.resolve(AuthProtocol)
+    auth = await app.container.resolve(AuthenticatorProtocol)
 ```
 
 ## Common Mistakes

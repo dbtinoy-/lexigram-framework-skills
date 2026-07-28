@@ -1,27 +1,30 @@
 ---
 name: cli-code-generation
-description: Use when scaffolding code components like controllers, services, models, or any of the 42 lexigram gen generators
+description: Use when scaffolding code components like controllers, services, models, or using lexigram gen generators
 ---
 
 # CLI Code Generation
 
 ## Overview
 
-`lexigram gen` provides 42 code generators that scaffold components with proper DI wiring, module registration, and protocol bindings — no manual boilerplate.
+`lexigram gen` provides code generators that scaffold components with proper DI wiring, module registration, and protocol bindings — no manual boilerplate.
 
 ## Basic Usage
 
 ```bash
-lexigram gen list                           # List all available generators
+lexigram gen list                           # List all available generators (built-in + extension)
+lexigram gen list --all                     # List all discoverable generators
 
-# Core patterns
-lexigram gen model Product                  # SQLAlchemy model
+# Built-in (available in every project)
+lexigram gen provider MyProvider            # DI provider
+lexigram gen test ProductServiceTest        # Test scaffold
+
+# Extension generators (if the contributing package is installed)
+lexigram gen model Product                  # Domain model
 lexigram gen repository ProductRepo         # DB repository with queries
 lexigram gen service ProductService         # Service with unit of work
 lexigram gen controller ProductController   # Web controller with routes
 lexigram gen resource Product               # Full RESTful CRUD resource
-lexigram gen provider MyProvider            # DI provider
-lexigram gen test ProductServiceTest        # Test scaffold
 
 # Web & API
 lexigram gen middleware AuthMiddleware       # Web middleware

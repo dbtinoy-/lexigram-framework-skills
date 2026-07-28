@@ -60,17 +60,6 @@ lexigram gen notification_template welcome   # Notification template
 lexigram gen admin_resource ProductAdmin     # Admin panel resource
 lexigram gen admin_action BulkPublish        # Custom admin action
 
-# Other
-lexigram gen filter ProductFilter            # Query filter for models
-lexigram gen seeder ProductSeeder            # DB seeder for test data
-lexigram gen health db_health                # Database health check
-lexigram gen dataloader ProductLoader        # GraphQL DataLoader (N+1 fix)
-lexigram gen tenant_resolver header          # Custom tenant resolver
-lexigram gen guard ProductGuard              # Authorization guard
-lexigram gen auth_guard ProductGuard         # Auth guard
-lexigram gen auth_policy ProductPolicy       # Auth policy
-lexigram gen tenant_resolver header          # Custom tenant resolver
-lexigram gen provider MyProvider             # Generate provider
 ```
 
 ## Typical Workflow

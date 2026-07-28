@@ -23,19 +23,22 @@ Highest:  LEX_ env-var overrides with __ nesting
 
 ```yaml
 # application.yaml
-app:
-  name: my-app
-  env: production
-  debug: false
+app_name: my-app
+env: production
+debug: false
 
 db:
-  url: postgresql+asyncpg://user:pass@localhost:5432/mydb
-  pool_size: 10
+  backend:
+    url: postgresql+asyncpg://user:pass@localhost:5432/mydb
+  pool:
+    max_size: 10
 
 cache:
-  backend: redis
-  redis:
-    url: redis://localhost:6379/0
+  backends:
+    - name: default
+      type: redis          # memory | redis | memcached
+      default: true
+      url: redis://localhost:6379/0
 ```
 
 ## Environment Variable Overrides
@@ -43,8 +46,8 @@ cache:
 ```bash
 # LEX_<PACKAGE>__<FIELD> syntax — each extension declares its own prefix
 LEX_SQL__BACKEND__URL=postgresql+asyncpg://prod:pass@host:5432/db
-LEX_CACHE__BACKEND=redis
-LEX_APP__DEBUG=true
+LEX_CACHE__ENABLED=true
+LEX_DEBUG=true
 ```
 
 Nested sections use double underscore:
@@ -62,10 +65,10 @@ export LEX_PROFILE=development
 
 ```yaml
 # application.development.yaml — overrides base values
-app:
-  debug: true
+debug: true
 db:
-  url: sqlite+aiosqlite:///dev.db
+  backend:
+    url: sqlite+aiosqlite:///dev.db
 ```
 
 ## Config in Providers
